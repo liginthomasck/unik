@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Unik Corp.</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #0a0f1c;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+    }
+ 
+    .main-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+    }
+ 
+    #container {
+      width: 50%;
+      height: 100%;
+    }
+ 
+    .text {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding-left: 5%;
+    }
+ 
+    .text h1 {
+      font-size: 3em;
+      margin: 0;
+    }
+ 
+    .text p {
+      font-size: 1.5em;
+      margin-top: 10px;
+      line-height: 1.4em;
+    }
+ 
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div id="container"></div>
+    <div class="text">
+      <h1>Unik Corp.</h1>
+      <p>Connecting Tech,<br>Creating Businesses.</p>
+    </div>
+  </div>
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script>
+    const container = document.getElementById('container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+ 
+    const radius = 3;
+    const pointCount = 100;
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const material = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.05 });
+ 
+    const lines = new THREE.Group();
+    const points = [];
+ 
+    for (let i = 0; i < pointCount; i++) {
+      const phi = Math.acos(2 * Math.random() - 1);
+      const theta = 2 * Math.PI * Math.random();
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+      points.push(new THREE.Vector3(x, y, z));
+      positions.push(x, y, z);
+    }
+ 
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    const pointCloud = new THREE.Points(geometry, material);
+    scene.add(pointCloud);
+ 
+    // Connect nearby nodes with lines
+    for (let i = 0; i < pointCount; i++) {
+      for (let j = i + 1; j < pointCount; j++) {
+        if (points[i].distanceTo(points[j]) < 1.1) {
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints([points[i], points[j]]);
+          const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.6, transparent: true });
+          const line = new THREE.Line(lineGeometry, lineMaterial);
+          lines.add(line);
+        }
+      }
+    }
+ 
+    scene.add(lines);
+ 
+    camera.position.z = 8;
+ 
+    function animate() {
+      requestAnimationFrame(animate);
+      pointCloud.rotation.y += 0.002;
+      lines.rotation.y += 0.002;
+      renderer.render(scene, camera);
+    }
+ 
+    animate();
+ 
+    window.addEventListener('resize', () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    });
+  </script>
+</body>
+</html>
